@@ -5,10 +5,10 @@ diukur memakai RAM puncak 273 MB (`docs/uji/sumber_daya.md`, alur v9: pemisah da
 
 ## 0. Periksa sebelum memasang
 
-- [ ] Lisensi ds2 (Kaggle soni535) tercatat **"unknown"** di metadata Kaggle, dan sudah ditulis "lisensi tidak dinyatakan oleh
-      penyusun" beserta tautannya. Foto ds2 hanya dipakai untuk melatih model (tidak ditampilkan di aplikasi). Putuskan bersama
-      dospem apakah hal ini cukup untuk publikasi.
-- [ ] `rbs/rules.yaml` R001–R003 sudah sama dengan Tabel 3.1 proposal. BAB 3 skripsi masih memuat Tabel 3.2 versi 2022 (lihat README).
+- [x] Lisensi ds2: sumber aslinya (Hasan dkk., 2023, Mendeley Data V2, doi:10.17632/hx6f852hw4.2) berlisensi **CC BY 4.0**
+      (dicek di halaman Mendeley dan DataCite, 2026-10-30), dan sudah dikutip di halaman Tentang dan README. Salinan Kaggle (soni535)
+      yang dipakai mencantumkan "unknown". Foto ds2 hanya dipakai untuk melatih model (tidak ditampilkan di aplikasi).
+- [ ] `rbs/rules.yaml` R001–R003 sudah sama dengan Tabel 3.1 proposal. BAB 3 skripsi masih memuat Tabel 3.2 versi 2022 (dicatat di catatan internal skripsi, tidak ikut repositori).
 - [ ] Lisensi: repositori memakai **AGPL-3.0** (`LICENSE`), mengikuti model YOLOv8 dari Ultralytics. Repositori publik dengan kode
       lengkap memenuhi kewajiban membuka kode.
 - [ ] Sembilan tangkapan layar di `docs/tangkapan_layar/` hanya memuat foto dari RiceLeafDiseaseBD (CC BY 4.0), dan atribusinya ada di README.

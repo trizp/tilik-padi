@@ -14,8 +14,8 @@ di Universitas Telkom.
   YOLOv8 dipakai sesuai judul dan rumusan masalah skripsi; YOLO11 dilaporkan di skripsi sebagai pembanding.
 - Diagnosis: kotak dengan tingkat keyakinan tertinggi. Ada **tiga tingkat jawaban**: **terdeteksi** (≥ 36%), **kemungkinan**
   (30–36%), dan **tidak terdeteksi** (< 30%). Kedua batas dikunci di data validasi sebelum pengujian.
-- Aturan: `rbs/rules.yaml`, berisi R001 Blast, R002 BLB, R003 Brown spot (kata-kata butir persis Tabel 3.1 proposal, Kementerian
-  Pertanian RI 2023), serta aturan untuk tingkat kemungkinan dan tidak terdeteksi.
+- Aturan: `rbs/rules.yaml`, berisi R001 Blast, R002 BLB, R003 Brown spot (sumber: Kementerian Pertanian RI. 2023. Teknik
+  Mengendalikan Hama dan Penyakit Padi. Pertanian Press, Jakarta; kata-kata butir persis Tabel 3.1 proposal), serta aturan untuk tingkat kemungkinan dan tidak terdeteksi.
 - Penyampaian tambahan (tidak mengubah diagnosis, tingkat, atau saran):
   - **Kemungkinan lain**: bila ada bercak penyakit lain dengan keyakinan ≥ 30%, ditampilkan satu di bawah nama penyakit;
   - **Cara membedakan**: ilustrasi blas daun dan bercak cokelat berdampingan dengan cirinya, plus saran konfirmasi ke penyuluh.
@@ -130,30 +130,15 @@ bukan ketepatan pada foto baru. Ketepatan pada foto dari Indonesia masih terbata
 - Data latih:
   - RiceLeafDiseaseBD (Munna dkk., 2026, Mendeley Data V3, doi:10.17632/86s4jzj2m4.3), CC BY 4.0;
   - RICE Leaf Diseases (Kaggle yusufmurtaza01), lisensi metadata Kaggle: CC0-1.0;
-  - Rice Leaf Disease Dataset (Kaggle soni535; berkas "Rice Leaf Bacterial and Fungal Disease Dataset", hanya foto daun sehat),
-    lisensi metadata Kaggle: "unknown", ditulis sebagai "lisensi tidak dinyatakan oleh penyusun".
+  - Hasan, M., Khatun, S., Raihan, M. A., Uddin, A. H. (2023). Rice Leaf Bacterial and Fungal Disease Dataset. Mendeley Data, V2.
+    doi:10.17632/hx6f852hw4.2, CC BY 4.0 (dicek di halaman Mendeley dan DataCite, 2026-10-30). Diakses melalui salinan Kaggle
+    (soni535); hanya foto daun sehat yang dipakai.
 - Gambar daun dan petunjuk memotret di aplikasi adalah ilustrasi SVG buatan sendiri, bukan foto dataset.
-- Model: Ultralytics YOLOv8s dan YOLOv8n-seg (AGPL-3.0).
+- Model: Ultralytics YOLOv8s dan YOLOv8n-seg (AGPL-3.0). Model pemisah daun YOLOv8n-seg dilatih meniru masker daun dari SAM 2
+  (Meta AI, lisensi Apache-2.0).
+- Sumber basis aturan: Kementerian Pertanian RI. 2023. Teknik Mengendalikan Hama dan Penyakit Padi. Pertanian Press, Jakarta.
 
 ## Lisensi
 
 Kode aplikasi dirilis dengan **GNU Affero General Public License v3.0** (`LICENSE`), mengikuti lisensi Ultralytics YOLOv8 yang
 menjadi dasar model. Data latih memiliki lisensinya masing-masing (lihat Atribusi).
-
-## Perlu disamakan di dokumen skripsi: Tabel 3.1 proposal vs Tabel 3.2 BAB3_Metodologi.docx
-
-Aplikasi memakai **Tabel 3.1 proposal** (hlm. 18; Kementerian Pertanian RI, 2023, *Teknik Mengendalikan Hama dan Penyakit Padi*,
-Pertanian Press). `BAB3_Metodologi.docx` masih memuat versi lain sebagai **Tabel 3.2** (Kementerian Pertanian RI 2022; R003 dari
-Semangun 2008). Di berkas itu, Tabel 3.1 adalah tabel pembagian dataset. Perbedaannya:
-
-| Aturan | Tabel 3.2 BAB3 (2022) | Tabel 3.1 proposal (2023), dipakai aplikasi |
-|---|---|---|
-| R001 Blast | fungisida Tricyclazole atau Isoprothiolane; pangkas daun terinfeksi; perbaiki drainase; hindari N berlebih | pemupukan berimbang, N ≤ 90 kg/Ha; varietas tahan + pergiliran; hindari benih dari daerah endemis + perlakuan benih; atur waktu tanam; bakar jerami terinfeksi; fungisida trisiklazol, isoprotiolan, heksakonazol, atau azoksistrobin + difenokonazol |
-| R002 BLB | bakterisida **Streptomisin**; drainase segera; hindari lahan tergenang; varietas tahan | varietas tahan; bersihkan tunggul dan jerami terinfeksi; seleksi dan perlakuan benih dengan agens hayati; kompos jerami terdekomposisi sempurna; agens hayati umur 14, 28, 42 HST; pupuk N sesuai takaran (**tanpa Streptomisin**) |
-| R003 Brown spot | fungisida Mancozeb atau **Propiconazole**; tambah pupuk **kalium**; keseimbangan nutrisi | benih bermutu, tata air, pemupukan berimbang; sanitasi + pergiliran tanaman bukan inang; perlakuan benih air panas + fungisida; varietas tahan/toleran; fungisida difenokonazol, tebukonazol, heksakonazol, mankozeb, atau azoksistrobin + difenokonazol |
-| R004–R006 | R004 Tungro; R005/R006 kombinasi dua penyakit | tidak dipakai (satu penyakit per foto; Tungro di luar cakupan) |
-
-Yang perlu disamakan:
-- nomor tabel;
-- tahun dan judul sumber di daftar pustaka;
-- isi butir di BAB 3 agar sama dengan aplikasi.

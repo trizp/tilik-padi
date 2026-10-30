@@ -232,7 +232,7 @@ memori ketika Anda memeriksa foto lain atau menutup halaman.</p>
 
 <h2>Model dan perangkat lunak</h2>
 <p>{"Model YOLOv8n-seg (pemisah daun) dan " if pemisah else "Model "}{cfg.nama_model} dari Ultralytics (lisensi AGPL-3.0), dilatih ulang
-untuk {"memisahkan daun dan " if pemisah else ""}tiga penyakit lalu dijalankan dengan ONNX Runtime di CPU. Antarmuka dibuat dengan Streamlit.</p>
+untuk {"memisahkan daun dan " if pemisah else ""}tiga penyakit lalu dijalankan dengan ONNX Runtime di CPU. {"Model pemisah daun YOLOv8n-seg dilatih meniru masker daun dari SAM 2 (Meta AI, lisensi Apache-2.0). " if pemisah else ""}Antarmuka dibuat dengan Streamlit.</p>
 </div>""")
 
 

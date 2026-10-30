@@ -76,8 +76,10 @@ hasil_evaluasi:
       Daun petik dari Indonesia yang difoto di atas kertas (70 foto, model aplikasi): benar 52,9%; 17% foto diminta foto ulang. Daun
       Tungro (80 foto, di luar cakupan): 69% disebut BLB dan 20% diminta foto ulang.
 
-# Atribusi data latih model (ditampilkan di halaman Tentang). Lisensi ds1 dan ds2 ditulis persis dari kolom lisensi metadata
-# Kaggle (kaggle datasets metadata, 2026-10-14); "unknown" ditulis sebagai "lisensi tidak dinyatakan oleh penyusun".
+# Atribusi data latih model (ditampilkan di halaman Tentang). Lisensi ds1 ditulis persis dari kolom lisensi metadata Kaggle
+# (kaggle datasets metadata, 2026-10-14). ds2 dikutip dari sumber aslinya di Mendeley Data; lisensinya dicek 2026-10-30 di halaman
+# Mendeley (data.mendeley.com/datasets/hx6f852hw4/2) dan metadata DataCite doi:10.17632/hx6f852hw4.2: CC BY 4.0. Salinan Kaggle
+# (soni535) yang dipakai mencantumkan lisensi "unknown".
 sumber_data:
   - nama: RiceLeafDiseaseBD
     keterangan: >-
@@ -90,7 +92,10 @@ sumber_data:
     keterangan: Kumpulan foto berlabel kotak; sumber seluruh contoh BLB serta tambahan Blast dan Brown spot untuk pelatihan.
     sitasi: https://www.kaggle.com/datasets/yusufmurtaza01/rice-leaf-diseases
     lisensi: CC0-1.0
-  - nama: Rice Leaf Disease Dataset (Kaggle, soni535; berkas "Rice Leaf Bacterial and Fungal Disease Dataset")
-    keterangan: Hanya foto daun sehat yang dipakai, sebagai contoh tanpa penyakit.
-    sitasi: https://www.kaggle.com/datasets/soni535/rice-leaf-bacterial-and-fungal-disease
-    lisensi: lisensi tidak dinyatakan oleh penyusun
+  - nama: Rice Leaf Bacterial and Fungal Disease Dataset
+    keterangan: >-
+      Hanya foto daun sehat yang dipakai, sebagai contoh tanpa penyakit. Diakses melalui salinan Kaggle (soni535).
+    sitasi: >-
+      Hasan, M., Khatun, S., Raihan, M. A., Uddin, A. H. (2023). Rice Leaf Bacterial and Fungal Disease Dataset. Mendeley Data, V2.
+      doi:10.17632/hx6f852hw4.2
+    lisensi: CC BY 4.0

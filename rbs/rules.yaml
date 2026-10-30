@@ -13,9 +13,9 @@
 # R004-R006 (kombinasi dua penyakit) TIDAK dipakai: aplikasi mendiagnosis satu penyakit per foto (keputusan dospem 2026-10-08).
 # Versi sebelumnya (slide 14 Proposal_TA_Tristan.pptx) diarsipkan di folder proyek skripsi (tidak ikut repositori).
 
+# sumber_aturan dan kolom sumber per aturan tampil di aplikasi; isi butirnya sama dengan Tabel 3.1 proposal (hlm. 18).
 sumber_aturan: >-
-  Tabel 3.1 proposal (hlm. 18), dari Kementerian Pertanian RI. 2023. Teknik Mengendalikan Hama dan Penyakit Padi.
-  Pertanian Press, Jakarta.
+  Kementerian Pertanian RI. 2023. Teknik Mengendalikan Hama dan Penyakit Padi. Pertanian Press, Jakarta.
 catatan_tetap: Gunakan pestisida sesuai dosis pada label dan anjuran penyuluh setempat.
 kelompok:
   S: Tindakan sekarang
@@ -58,7 +58,7 @@ aturan:
       - {kelompok: P, teks: "Atur waktu tanam agar fase keluar malai tidak bertepatan dengan musim embun tinggi."}
       - {kelompok: S, teks: "Bakar jerami dari pertanaman yang terinfeksi untuk mengurangi sumber inokulum."}
       - {kelompok: S, teks: "Aplikasikan fungisida berbahan aktif: trisiklazol, isoprotiolan, heksakonazol, atau azoksistrobin + difenokonazol."}
-    sumber: Tabel 3.1 proposal (Kementerian Pertanian RI, 2023)
+    sumber: Kementerian Pertanian RI (2023)
     alasan: Diagnosis blas daun cocok dengan aturan R001.
 
   - id: R002
@@ -73,7 +73,7 @@ aturan:
       - {kelompok: P, teks: "Jika menggunakan kompos jerami, pastikan jerami sakit telah terdekomposisi sempurna sebelum tanam."}
       - {kelompok: S, teks: "Aplikasikan agens hayati pada umur 14, 28, dan 42 HST di sore hari."}
       - {kelompok: P, teks: "Gunakan pupuk N sesuai takaran anjuran."}
-    sumber: Tabel 3.1 proposal (Kementerian Pertanian RI, 2023)
+    sumber: Kementerian Pertanian RI (2023)
     alasan: Diagnosis hawar daun bakteri cocok dengan aturan R002.
 
   - id: R003
@@ -87,7 +87,7 @@ aturan:
       - {kelompok: P, teks: "Lakukan perlakuan benih dengan perendaman air panas yang dicampur fungisida."}
       - {kelompok: P, teks: "Tanam varietas yang tahan atau toleran terhadap Brown Spot."}
       - {kelompok: S, teks: "Aplikasikan fungisida berbahan aktif: difenokonazol, tebukonazol, heksakonazol, mankozeb, atau azoksistrobin + difenokonazol."}
-    sumber: Tabel 3.1 proposal (Kementerian Pertanian RI, 2023)
+    sumber: Kementerian Pertanian RI (2023)
     alasan: Diagnosis bercak cokelat cocok dengan aturan R003.
 
   # ---- tahap 2: hasil belum pasti atau tidak ada -> tindakan umum (bukan obat khusus)
@@ -100,7 +100,7 @@ aturan:
       - Tunjukkan daun ini ke penyuluh pertanian atau petugas POPT untuk memastikan penyakitnya sebelum menyemprot obat.
       - "Sambil menunggu, lakukan pencegahan umum: gunakan benih bermutu, perbaiki tata air, dan lakukan pemupukan berimbang."
       - Anda juga bisa memotret ulang daun yang sama sesuai petunjuk memotret.
-    sumber: Pencegahan umum dari butir R003 (Tabel 3.1 proposal)
+    sumber: Pencegahan umum dari butir R003 (Kementerian Pertanian RI, 2023)
     alasan: Dugaan belum pasti, jadi sistem menyarankan konfirmasi dan pencegahan umum, bukan obat khusus.
 
   - id: N02
@@ -112,5 +112,5 @@ aturan:
       - Bila daun tampak sakit, foto ulang satu helai daun sesuai petunjuk memotret.
       - Bila tetap tidak terdeteksi, daun mungkin sehat atau terkena penyakit lain yang tidak dikenali sistem. Tanyakan ke penyuluh pertanian.
       - "Lakukan pencegahan umum: gunakan benih bermutu, perbaiki tata air, dan lakukan pemupukan berimbang."
-    sumber: Pencegahan umum dari butir R003 (Tabel 3.1 proposal)
+    sumber: Pencegahan umum dari butir R003 (Kementerian Pertanian RI, 2023)
     alasan: Tidak ada diagnosis, jadi sistem menyarankan foto ulang, konfirmasi, dan pencegahan umum.
