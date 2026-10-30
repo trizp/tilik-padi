@@ -1,28 +1,30 @@
 # Uji kesetaraan inferensi app/core vs hasil evaluasi tersimpan
 
-Acuan: `reports\final_eval_v7\aplikasi\onnx_vs_pt_50_val.csv` (Ultralytics 8.4.171, conf 0,001, iou 0,7). 20 foto val pertama di berkas acuan.
+Acuan: `reports\v9_latar\aplikasi_v9\fase4_onnx_vs_pt_20_val.csv` (Ultralytics 8.4.171, conf 0,001, iou 0,7). 20 foto val pertama di berkas acuan.
 
-**Hasil: LOLOS**: kelas teratas identik 20/20; selisih keyakinan maksimum 0.00198 (vs ONNX Ultralytics) dan 0.00198 (vs .pt).
+Syarat lulus: kelas teratas identik (foto dengan keyakinan acuan >= 0,01), tingkat jawaban sama, dan selisih keyakinan < 0,01.
+
+**Hasil: LOLOS**: kelas teratas identik 18/20 (pada foto dengan keyakinan acuan >= 0,01: 12/12); tingkat jawaban sama 20/20; selisih keyakinan maksimum 0.00161 (vs ONNX Ultralytics) dan 0.00161 (vs .pt).
 
 | Foto | Kelas acuan | Keyakinan acuan (ONNX) | Kelas app | Keyakinan app | Selisih |
 |---|---|---|---|---|---|
-| ds4_brown-spot-2173_3657de07.jpg | 1 | 0.63379 | 1 | 0.63305 | 0.00074 |
-| ds4_brown-spot-516_43ab9f72.jpg | 1 | 0.73617 | 1 | 0.73632 | 0.00015 |
-| ds1_provisional_r6k-train-blight-rotated-003-jpg-rf-14a2_a7fb66f7.jpg | 2 | 0.88163 | 2 | 0.88146 | 0.00017 |
-| ds4_blast-558_ba273edb.jpg | 0 | 0.45980 | 0 | 0.45961 | 0.00019 |
-| ds4_Healthy-130_e39d3e87.jpg | 2 | 0.00724 | 2 | 0.00724 | 0.00000 |
-| ds4_Healthy-1029_6d6a316a.jpg | 1 | 0.05572 | 1 | 0.05439 | 0.00133 |
-| ds4_brown-spot-383_0ed30d7c.jpg | 1 | 0.59312 | 1 | 0.59510 | 0.00198 |
-| ds4_blast-94_9f932d59.jpg | 0 | 0.72668 | 0 | 0.72679 | 0.00011 |
-| ds4_Healthy-1010_be7c3073.jpg | 1 | 0.11877 | 1 | 0.11760 | 0.00117 |
-| ds4_brown-spot-1460_6865e2a4.jpg | 1 | 0.71933 | 1 | 0.71924 | 0.00009 |
-| ds4_Healthy-470_ce3289e3.jpg | 1 | 0.00454 | 1 | 0.00439 | 0.00015 |
-| ds4_blast-125_c17df59b.jpg | 0 | 0.75659 | 0 | 0.75630 | 0.00029 |
-| ds4_Healthy-1180_2a19d576.jpg | 1 | 0.03562 | 1 | 0.03464 | 0.00098 |
-| ds1_provisional_r6k-train-img-blb-86-jpg-rf-a7c3045efecb_39e344cf.jpg | 2 | 0.62859 | 2 | 0.62815 | 0.00044 |
-| ds4_blast-682_a02d5aa8.jpg | 0 | 0.71181 | 0 | 0.71147 | 0.00034 |
-| ds1_provisional_r6k-train-img-blb-86-jpg-rf-ed30ea3aa394_b9bee907.jpg | 2 | 0.67898 | 2 | 0.67839 | 0.00059 |
-| ds1_provisional_r6k-train-img-blb-133-jpeg-jpg-rf-007032_11a178c3.jpg | 2 | 0.83202 | 2 | 0.83210 | 0.00008 |
-| ds4_blast-442_52869e25.jpg | 0 | 0.83896 | 0 | 0.83885 | 0.00011 |
-| ds4_Healthy-1545_82309143.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
-| ds4_Healthy-692_f90c5c0c.jpg | 1 | 0.15285 | 1 | 0.15371 | 0.00086 |
+| ds4_brown-spot-690_93aab3f3.jpg | 1 | 0.65840 | 1 | 0.65913 | 0.00073 |
+| ds4_Healthy-1016_ecf273a6.jpg | 0 | 0.00315 | 1 | 0.00318 | 0.00003 |
+| ds1_provisional_r6k-train-blight-rotated-003-jpg-rf-f64b_505acae2.jpg | 2 | 0.89167 | 2 | 0.89157 | 0.00010 |
+| ds4_brown-spot-1110_58b7ca74.jpg | 1 | 0.72870 | 1 | 0.72831 | 0.00039 |
+| ds4_Healthy-372_be9ae65f.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds4_Healthy-21_06de02e9.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds4_brown-spot-960_7b814cd6.jpg | 1 | 0.67398 | 1 | 0.67393 | 0.00005 |
+| ds4_brown-spot-1520_967ad566.jpg | 1 | 0.68711 | 1 | 0.68677 | 0.00034 |
+| ds4_Healthy-1575_1e883ab4.jpg | 1 | 0.00365 | 0 | 0.00366 | 0.00001 |
+| ds4_brown-spot-483_8f6f4af4.jpg | 1 | 0.58643 | 1 | 0.58607 | 0.00036 |
+| ds4_blast-621_568f1e53.jpg | 0 | 0.47018 | 0 | 0.47179 | 0.00161 |
+| ds4_Healthy-333_cdcb6f84.jpg | 1 | 0.32716 | 1 | 0.32821 | 0.00105 |
+| ds2_Healthy-rice-leaf-2_559d3866.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds4_brown-spot-1375_94f274b7.jpg | 1 | 0.67523 | 1 | 0.67561 | 0.00038 |
+| ds2_Healthy-rice-leaf-31_09a59d72.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds1_provisional_r6k-train-img-blb-32-JPG-jpg-rf-cba33b8e_48db280a.jpg | 2 | 0.85064 | 2 | 0.85056 | 0.00008 |
+| ds4_blast-967_21b44414.jpg | 0 | 0.72574 | 0 | 0.72572 | 0.00002 |
+| ds4_Healthy-586_2dcdcd08.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds2_Healthy-rice-leaf-96_999b4bac.jpg | -1 | 0.00000 | -1 | 0.00000 | 0.00000 |
+| ds4_brown-spot-1679_db1141f6.jpg | 1 | 0.75296 | 1 | 0.75320 | 0.00024 |

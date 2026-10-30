@@ -147,7 +147,7 @@ Draf pertama (di kepala, sebelum kode) lalu diperiksa terhadap daftar HINDARI. Y
 | Label kecil "HASIL DIAGNOSIS" huruf kapital di atas nama penyakit | label kapital di atas judul | label tingkat ("Terdeteksi") ditulis biasa, sebagai penanda berwarna yang memuat informasi, bukan hiasan |
 | Tombol "📷 Ambil foto →" | emoji dan panah di tombol | "Ambil foto daun", "Unggah foto" |
 | Subjudul "Diagnosis berbasis AI canggih" | kata promosi | kalimat pembuka yang menjelaskan apa yang terjadi: "Sistem akan menebak penyakitnya dan memberi saran tindakan." |
-| Baris info "YOLO11s · ONNX · 61 ms" | pemisah titik tengah; detail teknis untuk petani | dipindah ke halaman Tentang, ditulis sebagai kalimat |
+| Baris info "YOLOv8s · ONNX · 69 ms" | pemisah titik tengah; detail teknis untuk petani | dipindah ke halaman Tentang, ditulis sebagai kalimat |
 | Label pita "TIDAK TERDETEKSI / KEMUNGKINAN / TERDETEKSI" dengan huruf monospace | kapital semua; monospace untuk label | label huruf kecil di awal kalimat, dalam Plus Jakarta Sans |
 | Penanda pita bergeser beranimasi saat hasil muncul | animasi muncul | penanda statis |
 | Kotak peringatan kuning bawaan `st.warning` dengan ikon | terlalu keras dan generik; Jerami sudah berarti "kemungkinan" | paragraf tenang dengan garis kiri Langit dan tautan "Baca selengkapnya di halaman Tentang" |
@@ -195,3 +195,42 @@ bawah. Keputusan revisi:
 - **Rekomendasi berkelompok.** "Tindakan sekarang" lebih dulu, lalu "Pencegahan musim berikutnya". Kata-kata persis Tabel 3.1,
   ditutup catatan tetap tentang dosis pestisida dan sumber aturan.
 - **Desktop ≥ 1024 px dua kolom** (awal: aksi | tiga penyakit; hasil: foto | penjelasan). Di bawah 1024 px satu kolom maksimal 720 px.
+
+## 9. Penyampaian hasil (15 Okt): kemungkinan lain, cara membedakan, bercak berkeyakinan rendah
+
+Latar: di VAL, model sering menukar Blast dan Brown spot, dan pada sebagian kasus kelas benarnya tetap muncul sebagai kotak kedua
+(`reports/final_eval_v7/aplikasi/analisis_val_kemungkinan_kedua/RINGKASAN.md`, analisis val, bukan hasil utama). Model, ambang, dan
+saran tidak diubah; yang ditambah hanya cara menyampaikan.
+
+- **Kemungkinan lain** berupa satu baris teks biasa di bawah nama penyakit ("Kemungkinan lain: Bercak cokelat (38%)"), bukan label
+  berwarna, supaya tidak bersaing dengan diagnosis utama. Hanya satu penyakit, keyakinan tertinggi.
+- **Cara membedakan** memakai ilustrasi helai daun yang sama, diperbesar ke bagian tengah, berdampingan. Ditaruh di antara pita dan
+  saran: petani melihat cara memastikan sebelum membaca saran fungisida. Kalimat penutup mengakui bahwa sistem juga bisa tertukar.
+- **Bercak berkeyakinan rendah** tidak memakai warna tingkat (Karat/Jerami/Langit) karena bukan diagnosis: kotaknya netral (garis
+  terang putus-putus di atas garis Tinta) berlabel "keyakinan rendah", dan kotak sangat kecil diperlebar ke sisi minimum 1/10 foto
+  agar terlihat di HP. Kalimat di kepala hasil diberi garis kiri putus-putus Tinta, sepadan dengan kotaknya.
+
+## 10. Model YOLOv8s aktif (16 Okt): dua tingkat, batas tampilan, cara membedakan terlipat
+
+- **Dua tingkat.** Dengan YOLOv8s, prosedur yang sama di val menghasilkan batas bawah = ambang terdeteksi (0,37), sehingga pita hanya
+  punya dua zona 50/50 (tidak terdeteksi | terdeteksi). Skala bertingkat 36/28/36 di bagian 3 hanya berlaku untuk tiga tingkat
+  (arsip YOLO11s).
+- **Bercak berkeyakinan rendah dinonaktifkan.** Batas yang memenuhi syarat foto sehat <= 25% (VAL v7, model final YOLOv8s seed 2)
+  hanya 0,35; tanda itu tampil pada 2 foto val dengan model aplikasi dan sensitif terhadap beberapa foto. Syarat tidak dilonggarkan,
+  jadi tampilan ini dimatikan lewat config (kodenya tetap ada).
+- **Cara membedakan** terbuka hanya untuk pasangan Blast dan Brown spot (diagnosis utama + kemungkinan lain), karena hanya di situ
+  sistem sendiri ragu di antara keduanya. Pada hasil Blast atau Brown spot lain, bagian ini terlipat dengan judul yang sama, supaya
+  halaman hasil di HP tidak memanjang.
+
+## 11. Alur v9 aktif (20 Okt): pemisah daun, tiga tingkat, foto ulang
+
+- **Tiga tingkat lagi.** Dengan alur v9, prosedur tiga tingkat di val menghasilkan batas bawah 0,30 di bawah ambang terdeteksi 0,36,
+  sehingga pita kembali punya zona "kemungkinan" (skala bertingkat bagian 3). Bercak berkeyakinan rendah tetap nonaktif (tidak ada
+  batas yang memenuhi syarat foto sehat <= 25%).
+- **Foto ulang memakai pesan galat yang sudah ada** ("Foto belum bisa diperiksa." + kalimat cara memperbaiki) di halaman awal, di atas
+  petunjuk memotret. Alasannya: tindakan yang diminta sama dengan foto yang ditolak (memotret ulang), dan petunjuk memotret langsung
+  terlihat di bawahnya. Teksnya di `config.yaml` (`teks.pesan_foto_ulang`).
+- **Foto yang ditampilkan tetap foto asli.** Latar abu hanya untuk model; pengguna melihat fotonya sendiri dengan kotak bercak, supaya
+  hasil mudah dicocokkan dengan daun di tangannya.
+- **Halaman Tentang** menjelaskan langkah pemisah daun, memperingatkan bahwa foto BLB dan daun yang dipegang tangan lebih sering diminta
+  foto ulang, dan mencantumkan angka evaluasi alur aplikasi apa adanya (termasuk persentase foto ulang; `config.yaml`, `hasil_evaluasi`).

@@ -114,6 +114,9 @@ class Detektor:
         so = ort.SessionOptions()
         # arena memori CPU dimatikan: RSS tetap ~110 MB setelah banyak foto (dengan arena ~260 MB), waktu ~9% lebih lambat
         so.enable_cpu_mem_arena = arena_memori
+        # dua sesi ONNX (pemisah daun + detektor) dipanggil bergantian; thread yang "berputar" menunggu membuat sesi lain melambat
+        # (prototipe v9: waktu inti ±400 ms dengan spinning, 177 ms tanpa; reports/v9_latar/aplikasi_v9/RINGKASAN_FASE4_5.md)
+        so.add_session_config_entry("session.intra_op.allow_spinning", "0")
         if threads:
             so.intra_op_num_threads = threads
         self.sesi = ort.InferenceSession(str(path), sess_options=so, providers=["CPUExecutionProvider"])

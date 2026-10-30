@@ -134,6 +134,19 @@ h2.nama-penyakit { font-size: 30px; line-height: 36px; font-weight: 700; color: 
 .hasil-ilustrasi { margin-top: 0.6rem; }
 .ciri-hasil { margin-top: 0.4rem !important; }
 .hasil-ilustrasi svg.helai { max-width: 360px; }
+.kemungkinan-lain { margin: 0.45rem 0 0 0 !important; }
+.kemungkinan-lain .utuh { white-space: nowrap; }
+.catatan-rendah { border-left: 4px dashed var(--tinta); padding: 0.1rem 0 0.1rem 0.8rem; margin: 0.5rem 0 0 0 !important; }
+
+/* ---------- cara membedakan blas daun dan bercak cokelat: dua ilustrasi diperbesar berdampingan */
+.beda { margin-top: 0.5rem; }
+.beda.dalam-lipatan { margin-top: 0; }
+.beda h3.judul-bagian { margin-top: 1.25rem; }
+.beda-dua { display: flex; gap: 12px; }
+.beda-dua figure { flex: 1 1 0; margin: 0; min-width: 0; }
+.beda-dua svg.helai { max-width: 100%; margin: 0 0 0.35rem 0; }
+.beda-dua figcaption { font-size: 14px; line-height: 20px; color: var(--tinta); }
+.beda-saran { margin-top: 0.6rem !important; }
 
 /* ---------- pita keyakinan */
 .pita { position: relative; margin: 1.25rem 0 0.25rem 0; }

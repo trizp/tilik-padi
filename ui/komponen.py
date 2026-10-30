@@ -1,5 +1,6 @@
 """Potongan HTML untuk tampilan. Semua teks dari luar di-escape."""
 import base64
+import math
 from html import escape
 from pathlib import Path
 
@@ -15,7 +16,9 @@ PENYAKIT = {
 }
 LABEL_TINGKAT = {"terdeteksi": "Terdeteksi", "kemungkinan": "Kemungkinan", "tidak_terdeteksi": "Tidak terdeteksi"}
 NAMA_FAKTA = {"penyakit": "penyakit hasil deteksi", "tingkat": "tingkat", "keyakinan": "tingkat keyakinan", "diagnosis": "diagnosis",
-              "dugaan": "dugaan", "perlu_konfirmasi": "perlu konfirmasi", "perlu_foto_ulang": "perlu foto ulang", "rekomendasi": "jenis saran"}
+              "dugaan": "dugaan", "perlu_konfirmasi": "perlu konfirmasi", "perlu_foto_ulang": "perlu foto ulang", "rekomendasi": "jenis saran",
+              "kemungkinan_lain": "kemungkinan lain", "keyakinan_kemungkinan_lain": "tingkat keyakinan kemungkinan lain",
+              "bercak_keyakinan_rendah": "bercak berkeyakinan rendah ditampilkan"}
 NILAI_FAKTA = {"leaf_blast": "blas daun", "brown_spot": "bercak cokelat", "bacterial_leaf_blight": "hawar daun bakteri", "tidak_ada": "tidak ada",
                "terdeteksi": "terdeteksi", "kemungkinan": "kemungkinan", "tidak_terdeteksi": "tidak terdeteksi", "ya": "ya",
                "khusus": "khusus penyakit", "umum": "umum"}
@@ -26,8 +29,10 @@ def css() -> str:
     return (Path(__file__).with_name("gaya.css")).read_text(encoding="utf-8")
 
 
-def persen(k: float) -> str:
-    return f"{round(100 * k):d}%"
+def persen(k: float, turun: bool = False) -> str:
+    """turun=True untuk keyakinan di bawah ambang terdeteksi: dibulatkan ke bawah, supaya misalnya 36,7% tidak tertulis "37%"
+    (= ambang terdeteksi YOLOv8s) pada hasil yang tidak terdeteksi."""
+    return f"{math.floor(100 * k + 1e-9):d}%" if turun else f"{round(100 * k):d}%"
 
 
 # ---------------------------------------------------------------- kepala dan halaman awal
@@ -68,17 +73,37 @@ def petunjuk(t: dict, judul: bool = True) -> str:
 
 
 # ---------------------------------------------------------------- hasil
-def kepala_hasil(penyakit, tingkat: str, ada_potongan: bool = False) -> str:
+def _bercak_nama(penyakit: str) -> str:
+    """'bercak blas daun', 'bercak cokelat' (tanpa 'bercak bercak'), 'bercak hawar daun bakteri'."""
+    n = PENYAKIT[penyakit]["nama"].lower()
+    return n if n.startswith("bercak") else "bercak " + n
+
+
+def teks_bercak_rendah(penyakit: str, keyakinan: float) -> str:
+    return (f"Sistem melihat kemungkinan {_bercak_nama(penyakit)}, tetapi keyakinannya terlalu rendah untuk didiagnosis "
+            f"({persen(keyakinan, turun=True)}). Foto ulang dari dekat sesuai petunjuk, atau konfirmasi ke penyuluh.")
+
+
+def kepala_hasil(penyakit, tingkat: str, ada_potongan: bool = False, lain=None, keyakinan_rendah: float | None = None) -> str:
+    """lain: kemungkinan lain (objek dengan .penyakit dan .keyakinan), hanya untuk terdeteksi/kemungkinan.
+    keyakinan_rendah: keyakinan bercak berkeyakinan rendah (tingkat tidak terdeteksi, >= batas tampilan)."""
     lab = f'<span class="tingkat tingkat-{tingkat}">{LABEL_TINGKAT[tingkat]}</span>'
     if tingkat == "tidak_terdeteksi" or penyakit is None:
-        return (f'<div class="hasil-kepala">{lab}<h2 class="nama-penyakit">Tidak ada penyakit yang dikenali</h2>'
-                '<p class="patogen-polos">Sistem tidak menemukan bercak Blast, Brown spot, atau BLB pada foto ini.</p></div>')
+        if keyakinan_rendah is not None and penyakit in PENYAKIT:
+            isi = f'<p class="catatan-rendah">{escape(teks_bercak_rendah(penyakit, keyakinan_rendah))}</p>'
+        else:
+            isi = '<p class="patogen-polos">Sistem tidak menemukan bercak Blast, Brown spot, atau BLB pada foto ini.</p>'
+        return f'<div class="hasil-kepala">{lab}<h2 class="nama-penyakit">Tidak ada penyakit yang dikenali</h2>{isi}</div>'
     p = PENYAKIT[penyakit]
     awal = "Dugaan: " if tingkat == "kemungkinan" else ""
     kelas = "hasil-ilustrasi ada-potongan" if ada_potongan else "hasil-ilustrasi"
+    baris_lain = ""
+    if lain is not None and lain.penyakit in PENYAKIT and lain.penyakit != penyakit:
+        baris_lain = (f'<p class="kemungkinan-lain">Kemungkinan lain: <span class="utuh"><strong>{escape(PENYAKIT[lain.penyakit]["nama"])}</strong> '
+                      f'<span class="angka">({persen(lain.keyakinan)})</span></span></p>')
     return (f'<div class="hasil-kepala">{lab}<div class="hasil-baris"><div class="hasil-nama">'
             f'<h2 class="nama-penyakit">{awal}{escape(p["nama"])}</h2>'
-            f'<p class="patogen">{escape(p["istilah"])}, disebabkan {p["jenis"]} <em>{escape(p["patogen"])}</em></p></div>'
+            f'<p class="patogen">{escape(p["istilah"])}, disebabkan {p["jenis"]} <em>{escape(p["patogen"])}</em></p>{baris_lain}</div>'
             f'<div class="{kelas}">{il.penyakit(penyakit, "hasil-" + penyakit)}</div></div>'
             f'<p class="penyakit-ciri ciri-hasil">Ciri: {escape(p["ciri"][0].lower() + p["ciri"][1:])}</p></div>')
 
@@ -92,24 +117,50 @@ def potongan(jpeg: bytes, penyakit: str) -> str:
             f'<figure class="potongan-ilustrasi">{il.penyakit(penyakit, "potong-" + penyakit)}<figcaption>Gambaran ciri {escape(p["nama"].lower())}</figcaption></figure></div>')
 
 
+CIRI_PEMBEDA = {   # bab 2.2 proposal
+    "leaf_blast": "Bercak belah ketupat; pusat abu-abu, tepi cokelat.",
+    "brown_spot": "Bercak oval kecil berwarna cokelat tua; tepinya lebih muda.",
+}
+
+
+JUDUL_PEMBEDA = "Cara membedakan blas daun dan bercak cokelat"
+
+
+def cara_membedakan(judul: bool = True) -> str:
+    """Blas daun dan bercak cokelat berdampingan (ilustrasi diperbesar) dengan ciri bab 2.2 dan saran konfirmasi ke penyuluh.
+    judul=False: untuk di dalam lipatan yang sudah berjudul sama."""
+    fig = "".join(
+        f'<figure>{il.penyakit(k, "beda-" + k, dekat=True)}<figcaption><strong>{escape(PENYAKIT[k]["nama"])}</strong> '
+        f'({escape(PENYAKIT[k]["istilah"])})<br>{escape(CIRI_PEMBEDA[k])}</figcaption></figure>' for k in ("leaf_blast", "brown_spot"))
+    return (f'<section class="beda{"" if judul else " dalam-lipatan"}" aria-label="{JUDUL_PEMBEDA}">'
+            + (f'<h3 class="judul-bagian">{JUDUL_PEMBEDA}</h3>' if judul else "") +
+            f'<div class="beda-dua">{fig}</div>'
+            '<p class="beda-saran">Kedua penyakit ini mudah tertukar, juga oleh sistem. Bandingkan bentuk dan warna bercak pada daun Anda '
+            'dengan gambar di atas. Bila ragu, tunjukkan daunnya ke penyuluh pertanian atau petugas POPT sebelum menyemprot fungisida.</p>'
+            '</section>')
+
+
 def pita_keyakinan(k: float, tingkat: str) -> str:
     """Label zona dan angka keyakinan saja; angka batas ada di panel jejak. Skala bertingkat 36/28/36 (lihat docs/desain.md)."""
     x = posisi_pita(k)
     zona = [("tidak_terdeteksi", "tidak terdeteksi", 36), ("kemungkinan", "kemungkinan", 28), ("terdeteksi", "terdeteksi", 36)]
+    if BATAS["terdeteksi"] <= BATAS["rendah"]:
+        zona = [("tidak_terdeteksi", "tidak terdeteksi", 50), ("terdeteksi", "terdeteksi", 50)]
     label = "".join(f'<span class="pk-zona-label{" aktif" if z == tingkat else ""}" style="width:{w}%">{t}</span>' for z, t, w in zona)
     bar = "".join(f'<span class="pk-zona pk-{z}{" aktif" if z == tingkat else ""}" style="width:{w}%"></span>' for z, _, w in zona)
-    aria = f"Tingkat keyakinan {round(100 * k)} persen, zona {LABEL_TINGKAT[tingkat].lower()}"
+    angka = persen(k, turun=tingkat != "terdeteksi")
+    aria = f"Tingkat keyakinan {angka[:-1]} persen, zona {LABEL_TINGKAT[tingkat].lower()}"
     return (f'<div class="pita" role="img" aria-label="{escape(aria)}">'
-            f'<p class="pk-judul" aria-hidden="true">Tingkat keyakinan <strong class="angka">{persen(k)}</strong></p>'
+            f'<p class="pk-judul" aria-hidden="true">Tingkat keyakinan <strong class="angka">{angka}</strong></p>'
             f'<div class="pk-label" aria-hidden="true">{label}</div>'
             f'<div class="pk-bar" aria-hidden="true">{bar}<span class="pk-penanda" style="left:{x:.2f}%"></span></div></div>')
 
 
-BATAS = {"rendah": 0.29, "terdeteksi": 0.35}       # diisi dari config oleh atur_batas()
+BATAS = {"rendah": 0.29, "terdeteksi": 0.35, "tampil": 0.10}       # diisi dari config oleh atur_batas(); tampil None = nonaktif
 
 
-def atur_batas(rendah: float, terdeteksi: float):
-    BATAS.update(rendah=rendah, terdeteksi=terdeteksi)
+def atur_batas(rendah: float, terdeteksi: float, tampil: float | None = None):
+    BATAS.update(rendah=rendah, terdeteksi=terdeteksi, tampil=tampil)
 
 
 def posisi_pita(k: float, rendah: float | None = None, terdeteksi: float | None = None) -> float:
@@ -117,6 +168,8 @@ def posisi_pita(k: float, rendah: float | None = None, terdeteksi: float | None 
     rendah = BATAS["rendah"] if rendah is None else rendah
     terdeteksi = BATAS["terdeteksi"] if terdeteksi is None else terdeteksi
     k = min(max(k, 0.0), 1.0)
+    if terdeteksi <= rendah:                          # tanpa tingkat "kemungkinan": pita dua zona 50/50
+        return 50.0 * k / terdeteksi if k < terdeteksi else 50.0 + 50.0 * (k - terdeteksi) / (1.0 - terdeteksi)
     if k < rendah:
         return 36.0 * k / rendah
     if k < terdeteksi:
@@ -145,17 +198,35 @@ def daftar_saran(saran, meta: dict) -> str:
     return f'<h3 class="judul-bagian">Yang perlu dilakukan</h3>{"".join(bagian)}{catatan}{sumber}'
 
 
-def _nilai(v):
+def _nilai(v, turun: bool = False):
     if isinstance(v, float):
-        return persen(v)
+        return persen(v, turun)
     return NILAI_FAKTA.get(str(v), str(v))
 
 
 def jejak(hasil_inferensi, fakta_awal: dict) -> str:
-    awal = "".join(f"<li>{escape(NAMA_FAKTA.get(k, k))}: <strong>{escape(_nilai(v))}</strong></li>" for k, v in fakta_awal.items())
-    batas = (f"<p>Batas tingkat: <strong>tidak terdeteksi</strong> di bawah {persen(BATAS['rendah'])}; <strong>kemungkinan</strong> "
-             f"{persen(BATAS['rendah'])} sampai di bawah {persen(BATAS['terdeteksi'])}; <strong>terdeteksi</strong> "
-             f"{persen(BATAS['terdeteksi'])} atau lebih. Tingkat keyakinan diambil dari bercak yang paling diyakini sistem.</p>")
+    turun = fakta_awal.get("tingkat") != "terdeteksi"
+    awal = "".join(f"<li>{escape(NAMA_FAKTA.get(k, k))}: <strong>{escape(_nilai(v, turun and k == 'keyakinan'))}</strong></li>"
+                   for k, v in fakta_awal.items())
+    if BATAS["terdeteksi"] <= BATAS["rendah"]:
+        batas = (f"<p>Batas tingkat: <strong>tidak terdeteksi</strong> di bawah {persen(BATAS['terdeteksi'])}; <strong>terdeteksi</strong> "
+                 f"{persen(BATAS['terdeteksi'])} atau lebih. Tingkat keyakinan diambil dari bercak yang paling diyakini sistem.</p>")
+    else:
+        batas = (f"<p>Batas tingkat: <strong>tidak terdeteksi</strong> di bawah {persen(BATAS['rendah'])}; <strong>kemungkinan</strong> "
+                 f"{persen(BATAS['rendah'])} sampai di bawah {persen(BATAS['terdeteksi'])}; <strong>terdeteksi</strong> "
+                 f"{persen(BATAS['terdeteksi'])} atau lebih. Tingkat keyakinan diambil dari bercak yang paling diyakini sistem.</p>")
+    catatan = []
+    if "kemungkinan_lain" in fakta_awal:
+        catatan.append(f"<li><strong>Kemungkinan lain:</strong> selain bercak yang paling diyakini, sistem juga menemukan bercak "
+                       f"{escape(_nilai(fakta_awal['kemungkinan_lain']))} dengan tingkat keyakinan "
+                       f"{escape(_nilai(fakta_awal.get('keyakinan_kemungkinan_lain', 0.0)))} (minimal {persen(BATAS['rendah'])}). "
+                       "Hanya ditampilkan sebagai informasi; diagnosis dan saran tetap mengikuti bercak yang paling diyakini.</li>")
+    if fakta_awal.get("bercak_keyakinan_rendah") == "ya":
+        catatan.append(f"<li><strong>Bercak berkeyakinan rendah:</strong> bercak {escape(_nilai(fakta_awal.get('penyakit')))} dengan tingkat "
+                       f"keyakinan {escape(_nilai(fakta_awal.get('keyakinan', 0.0), True))}, di bawah {persen(BATAS['rendah'])}, sehingga tidak "
+                       f"didiagnosis. Kotaknya digambar dengan garis putus-putus karena keyakinannya minimal {persen(BATAS['tampil'] or 0.0)} "
+                       "(batas tampilan, bukan ambang diagnosis). Saran penanganan penyakit tidak diberikan.</li>")
+    catatan_html = (f"<p>Catatan tampilan (tidak mengubah diagnosis dan saran):</p><ul>{''.join(catatan)}</ul>" if catatan else "")
     langkah = []
     for L in hasil_inferensi.jejak:
         syarat = "; ".join(f"{escape(NAMA_FAKTA.get(s['fakta'], s['fakta']))} {OP[s['op']]} {escape(_nilai(s.get('nilai')))}" for s in L.aturan.jika)
@@ -166,7 +237,7 @@ def jejak(hasil_inferensi, fakta_awal: dict) -> str:
     if not langkah:
         langkah.append("<li>Tidak ada aturan yang terpenuhi.</li>")
     akhir = f"<p>Putaran {hasil_inferensi.putaran + 1}: tidak ada aturan baru yang terpenuhi, jadi penalaran berhenti.</p>"
-    return (f'<div class="jejak">{batas}<p>Fakta awal dari hasil pemeriksaan foto:</p><ul>{awal}</ul>'
+    return (f'<div class="jejak">{batas}<p>Fakta awal dari hasil pemeriksaan foto:</p><ul>{awal}</ul>{catatan_html}'
             f"<p>Aturan yang aktif secara berurutan (forward chaining):</p><ol>{''.join(langkah)}</ol>{akhir}</div>")
 
 

@@ -67,8 +67,10 @@ def hawar(id_="hawar") -> str:
 ILUSTRASI = {"leaf_blast": blas, "brown_spot": bercak_cokelat, "bacterial_leaf_blight": hawar}
 
 
-def penyakit(kode: str, id_: str | None = None) -> str:
-    return ILUSTRASI[kode](id_ or kode)
+def penyakit(kode: str, id_: str | None = None, dekat: bool = False) -> str:
+    """dekat=True: bagian tengah helai diperbesar (untuk perbandingan blas daun vs bercak cokelat)."""
+    s = ILUSTRASI[kode](id_ or kode)
+    return s.replace('viewBox="0 0 320 64"', 'viewBox="40 6 200 52"', 1).replace('class="helai"', 'class="helai dekat"', 1) if dekat else s
 
 
 def foto_benar() -> str:

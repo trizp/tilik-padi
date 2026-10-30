@@ -35,7 +35,7 @@ lokal tombol "Ambil foto daun" mungkin ditolak browser. Tombol "Unggah foto" tet
 
 ```powershell
 .venv\Scripts\python -m pip install -r requirements-dev.txt
-.venv\Scripts\python -m pytest -q tests          # 47 test; test yang butuh dataset proyek dilewati bila dataset tidak ada
+.venv\Scripts\python -m pytest -q tests          # 67 test; test yang butuh dataset proyek dilewati bila dataset tidak ada
 ```
 
 Hasil uji yang sudah dijalankan di folder proyek skripsi tercatat di `docs/uji_kesetaraan.md`, `docs/uji/blackbox.md`, dan

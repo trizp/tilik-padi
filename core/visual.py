@@ -1,12 +1,48 @@
 """Menggambar kotak bercak pada salinan foto yang diperkecil untuk tampilan."""
 import io
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 WARNA_TINGKAT = {"terdeteksi": "#A4442A", "kemungkinan": "#C9A227", "tidak_terdeteksi": "#4F6D8A"}
+NETRAL, TINTA = "#F4F4F0", "#1F2D24"     # kotak bercak berkeyakinan rendah: garis putus-putus terang di atas garis gelap
 
 
-def gambar_kotak(im: Image.Image, kotak, tingkat: str, sisi_maks: int = 1280) -> Image.Image:
+def _putus(d, xy, warna, tebal, panjang, jeda):
+    """Persegi panjang bergaris putus-putus (PIL tidak punya gaya garis)."""
+    x1, y1, x2, y2 = xy
+    for (a, b), (c, e) in (((x1, y1), (x2, y1)), ((x2, y1), (x2, y2)), ((x2, y2), (x1, y2)), ((x1, y2), (x1, y1))):
+        n = max(1.0, ((c - a) ** 2 + (e - b) ** 2) ** 0.5)
+        t = 0.0
+        while t < n:
+            u = min(t + panjang, n)
+            d.line([(a + (c - a) * t / n, b + (e - b) * t / n), (a + (c - a) * u / n, b + (e - b) * u / n)], fill=warna, width=tebal)
+            t += panjang + jeda
+
+
+def gambar_kotak_rendah(d, xy, ukuran_foto):
+    """Kotak netral putus-putus berlabel "keyakinan rendah" (bukan warna tingkat: ini bukan diagnosis)."""
+    sisi = max(ukuran_foto)
+    tebal = max(4, round(sisi / 120))
+    # bercak sangat kecil: kotak diperlebar ke sisi minimum agar terlihat di layar HP (pusat tetap)
+    minimum = sisi / 10
+    cx, cy = (xy[0] + xy[2]) / 2, (xy[1] + xy[3]) / 2
+    lw, lh = max(xy[2] - xy[0], minimum) / 2, max(xy[3] - xy[1], minimum) / 2
+    xy = [max(cx - lw, 0), max(cy - lh, 0), min(cx + lw, ukuran_foto[0] - 1), min(cy + lh, ukuran_foto[1] - 1)]
+    panjang, jeda = 3 * tebal, 2 * tebal
+    _putus(d, [xy[0] - 1, xy[1] - 1, xy[2] + 1, xy[3] + 1], TINTA, tebal + 4, panjang, jeda)
+    _putus(d, xy, NETRAL, tebal, panjang, jeda)
+    huruf = ImageFont.load_default(size=max(14, round(sisi / 24)))
+    teks = "keyakinan rendah"
+    l, t, r, b = d.textbbox((0, 0), teks, font=huruf)
+    pad = max(4, (b - t) // 3)
+    w, h = r - l + 2 * pad, b - t + 2 * pad
+    x = min(max(xy[0], 0), ukuran_foto[0] - w)
+    y = xy[1] - h - tebal if xy[1] - h - tebal >= 0 else min(xy[3] + tebal, ukuran_foto[1] - h)
+    d.rectangle([x, y, x + w, y + h], fill=TINTA)
+    d.text((x + pad - l, y + pad - t), teks, fill=NETRAL, font=huruf)
+
+
+def gambar_kotak(im: Image.Image, kotak, tingkat: str, sisi_maks: int = 1280, kotak_rendah=None) -> Image.Image:
     s = min(1.0, sisi_maks / max(im.size))
     tampil = im.resize((round(im.width * s), round(im.height * s)), Image.BILINEAR) if s < 1 else im.copy()
     d = ImageDraw.Draw(tampil)
@@ -17,6 +53,9 @@ def gambar_kotak(im: Image.Image, kotak, tingkat: str, sisi_maks: int = 1280) ->
         luar = max(2, tebal // 3)                      # garis luar Tinta: kotak tetap terlihat di daun terang/kuning
         d.rectangle([xy[0] - luar, xy[1] - luar, xy[2] + luar, xy[3] + luar], outline="#1F2D24", width=tebal + 2 * luar)
         d.rectangle(xy, outline=warna, width=tebal)
+    if kotak_rendah is not None:
+        b = kotak_rendah
+        gambar_kotak_rendah(d, [b.x1 * s, b.y1 * s, b.x2 * s, b.y2 * s], tampil.size)
     return tampil
 
 

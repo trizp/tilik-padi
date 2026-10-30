@@ -7,7 +7,7 @@ import gc
 import streamlit as st
 import streamlit.components.v1 as components
 
-from core import alur, gambar, inferensi, konfigurasi
+from core import alur, gambar, inferensi, konfigurasi, pemisah_daun
 from rbs import mesin
 from ui import komponen as ui
 
@@ -18,8 +18,9 @@ st.set_page_config(page_title="Tilik Padi", page_icon=None, layout="wide", initi
 def sumber_daya():
     cfg = konfigurasi.muat()
     det = inferensi.Detektor(cfg.model_path, cfg.imgsz, cfg.conf_min, cfg.iou, cfg.max_det)
-    ui.atur_batas(cfg.ambang_rendah, cfg.ambang_terdeteksi)
-    return cfg, det, mesin.muat_aturan(), mesin.muat_meta()
+    pemisah = pemisah_daun.PemisahDaun(cfg.pemisah_path, cfg.pemisah_tau) if cfg.pemisah_path else None
+    ui.atur_batas(cfg.ambang_rendah, cfg.ambang_terdeteksi, cfg.batas_tampil_rendah)
+    return cfg, det, pemisah, mesin.muat_aturan(), mesin.muat_meta()
 
 
 def html(s: str):
@@ -78,7 +79,7 @@ def aksi(cfg):
 # ---------------------------------------------------------------- halaman
 def halaman_diagnosis():
     _awal()
-    cfg, det, aturan, meta = sumber_daya()
+    cfg, det, pemisah, aturan, meta = sumber_daya()
     t = cfg.teks
     html(ui.navigasi("beranda"))
 
@@ -90,7 +91,7 @@ def halaman_diagnosis():
     if berkas is not None:
         try:
             data = berkas.getvalue()
-            hasil = alur.periksa_foto(data, cfg, det, aturan)
+            hasil = alur.periksa_foto(data, cfg, det, aturan, pemisah)
         except gambar.FotoDitolak as e:
             galat = str(e)
         finally:
@@ -124,13 +125,20 @@ def halaman_diagnosis():
     with st.container(key="tata_hasil"):
         kiri, kanan = st.columns([1, 1.05], gap="large")
         with kiri:
-            st.image(hasil.foto_bertanda, width="stretch",
-                     caption="Kotak menandai bercak yang dikenali sistem." if hasil.kotak_digambar else None)
+            keterangan = ("Kotak menandai bercak yang dikenali sistem." if hasil.kotak_digambar else
+                          "Garis putus-putus menandai bercak berkeyakinan rendah. Ini bukan diagnosis." if hasil.bercak_rendah else None)
+            st.image(hasil.foto_bertanda, width="stretch", caption=keterangan)
             if hasil.potongan:
                 html(ui.potongan(hasil.potongan, d.penyakit))
         with kanan:
-            html(ui.kepala_hasil(d.penyakit, d.tingkat, ada_potongan=bool(hasil.potongan)))
+            html(ui.kepala_hasil(d.penyakit, d.tingkat, ada_potongan=bool(hasil.potongan), lain=hasil.kemungkinan_lain,
+                                 keyakinan_rendah=hasil.bercak_rendah.keyakinan if hasil.bercak_rendah else None))
             html(ui.pita_keyakinan(d.keyakinan, d.tingkat))
+            if hasil.cara_membedakan == "terbuka":            # pasangan Blast dan Brown spot
+                html(ui.cara_membedakan())
+            elif hasil.cara_membedakan == "terlipat":
+                with st.expander(ui.JUDUL_PEMBEDA):
+                    html(ui.cara_membedakan(judul=False))
             html(ui.daftar_saran(hasil.inferensi.saran, meta))
             with st.expander("Mengapa sistem menyimpulkan ini"):
                 html(ui.jejak(hasil.inferensi, hasil.fakta_awal))
@@ -150,14 +158,42 @@ def halaman_diagnosis():
             components.html(ui.skrip_gulir("hasil"), height=0)
 
 
+def teks_tingkat(cfg) -> str:
+    t, r = round(100 * cfg.ambang_terdeteksi), round(100 * cfg.ambang_rendah)
+    b = round(100 * cfg.batas_tampil_rendah) if cfg.batas_tampil_rendah is not None else None
+    rendah = (f" Bila bercak teratas berkeyakinan {b}% sampai di bawah {r}%, bercak itu tetap ditandai dengan garis putus-putus berlabel "
+              "<strong>keyakinan rendah</strong> supaya Anda bisa memeriksanya sendiri. Ini bukan diagnosis, sehingga saran obat tidak "
+              f"diberikan. Batas tampilan {b}% dipilih dari data validasi agar tanda ini jarang muncul pada daun sehat."
+              if b is not None and cfg.batas_tampil_rendah < cfg.ambang_rendah else "")
+    lain = (f" Bila ada bercak penyakit lain dengan keyakinan {r}% atau lebih, namanya ditampilkan sebagai <strong>kemungkinan "
+            "lain</strong>; diagnosis dan saran tetap mengikuti bercak yang paling diyakini.")
+    if cfg.ambang_rendah >= cfg.ambang_terdeteksi:
+        return (f"Ada dua tingkat jawaban. Tingkat keyakinan {t}% atau lebih berarti <strong>terdeteksi</strong>. Di bawah {t}% berarti "
+                "<strong>tidak terdeteksi</strong>: sistem tidak menyimpulkan penyakit. Tingkat \"kemungkinan\" tidak dipakai, karena "
+                f"menurut prosedur pemilihan pada data validasi batas bawahnya jatuh tepat pada {t}%." + rendah + lain)
+    return (f"Tingkat keyakinan {t}% atau lebih berarti <strong>terdeteksi</strong>. Antara {r}% dan {t}% berarti "
+            f"<strong>kemungkinan</strong> (belum pasti). Di bawah {r}% berarti <strong>tidak terdeteksi</strong>." + rendah + lain)
+
+
 def halaman_tentang():
-    cfg, _, _, meta = sumber_daya()
+    cfg, _, pemisah, _, meta = sumber_daya()
     html(ui.navigasi("tentang"))
     sumber = "".join(
         f"<li><strong>{s['nama']}</strong>. {s.get('keterangan', '')}"
         + (f"<br>{s['sitasi']}" if s.get("sitasi") else "")
         + (f"<br>Lisensi: {s['lisensi']}." if s.get("lisensi") else "") + "</li>"
         for s in cfg.sumber_data)
+    langkah_pemisah = (
+        "<li>Model segmentasi YOLOv8n-seg mencari satu helai daun pada foto, lalu latar di sekitarnya ditutup dengan warna abu supaya "
+        "penilaian hanya didasarkan pada daun. Bila tidak ada daun yang terlihat jelas, sistem tidak memberi diagnosis dan meminta Anda "
+        "memotret ulang.</li>\n" if pemisah else "")
+    peringatan_foto_ulang = (
+        "<li>Foto BLB dan foto daun yang dipegang tangan lebih sering diminta foto ulang, karena pada foto seperti itu sistem sering tidak "
+        "menemukan satu helai daun yang jelas. Dalam pengujian, 29% foto BLB diminta foto ulang. Untuk hasil terbaik, potret daun yang "
+        "masih di tanamannya.</li>\n" if pemisah else "")
+    ev = cfg.hasil_evaluasi
+    evaluasi = (f'<h2>Hasil pengujian</h2>\n<p>{ev.get("pengantar", "")}</p>\n<ul>'
+                + "".join(f"<li>{b}</li>" for b in ev.get("butir", [])) + "</ul>\n\n" if ev else "")
     html(f"""
 <div class="tentang">
 <h1 class="judul">Tentang Tilik Padi</h1>
@@ -166,10 +202,8 @@ daun bakteri (BLB). Aplikasi ini dibuat untuk penelitian skripsi di Universitas 
 
 <h2>Cara kerja</h2>
 <ol>
-<li>Model deteksi objek YOLO11s mencari bercak penyakit pada foto dan memberi tingkat keyakinan untuk setiap bercak.</li>
-<li>Bercak dengan tingkat keyakinan tertinggi menentukan diagnosis. Tingkat keyakinan {round(100 * cfg.ambang_terdeteksi)}% atau lebih
-berarti <strong>terdeteksi</strong>. Antara {round(100 * cfg.ambang_rendah)}% dan {round(100 * cfg.ambang_terdeteksi)}% berarti
-<strong>kemungkinan</strong> (belum pasti). Di bawah {round(100 * cfg.ambang_rendah)}% berarti <strong>tidak terdeteksi</strong>.</li>
+{langkah_pemisah}<li>Model deteksi objek {cfg.nama_model} mencari bercak penyakit pada {"daun itu" if pemisah else "foto"} dan memberi tingkat keyakinan untuk setiap bercak.</li>
+<li>Bercak dengan tingkat keyakinan tertinggi menentukan diagnosis. {teks_tingkat(cfg)}</li>
 <li>Sistem berbasis aturan (forward chaining) memilih saran tindakan dari basis aturan. Sumber basis aturan: {meta['sumber_aturan']}
 Langkah penalarannya bisa dibuka di bagian "Mengapa sistem menyimpulkan ini".</li>
 </ol>
@@ -178,7 +212,7 @@ Langkah penalarannya bisa dibuka di bagian "Mengapa sistem menyimpulkan ini".</l
 <ul>
 <li>Model dilatih terutama dengan foto lapangan dari Bangladesh. Pada foto dari Indonesia, ketepatannya masih terbatas, terutama untuk
 Blast.</li>
-<li>Diagnosis BLB belum dapat diandalkan untuk daun yang dipetik, atau daun yang menguning karena sebab lain (misalnya Tungro). Dalam
+{peringatan_foto_ulang}<li>Diagnosis BLB belum dapat diandalkan untuk daun yang dipetik, atau daun yang menguning karena sebab lain (misalnya Tungro). Dalam
 pengujian dengan daun petik dari Indonesia, sistem sering menyebut daun Tungro sebagai BLB.</li>
 <li>Sistem hanya mengenal Blast, Brown spot, dan BLB. Penyakit lain (misalnya Tungro, Leaf smut, Sheath blight) bisa salah dikenali
 sebagai salah satu dari ketiganya.</li>
@@ -186,7 +220,7 @@ sebagai salah satu dari ketiganya.</li>
 {meta['catatan_tetap']}</li>
 </ul>
 
-<h2>Privasi foto</h2>
+{evaluasi}<h2>Privasi foto</h2>
 <p>Foto Anda tidak disimpan. Foto hanya diproses di memori server untuk pemeriksaan ini dan tidak ditulis ke disk. Foto terhapus dari
 memori ketika Anda memeriksa foto lain atau menutup halaman.</p>
 
@@ -197,8 +231,8 @@ memori ketika Anda memeriksa foto lain atau menutup halaman.</p>
 <p>Gambar daun dan petunjuk memotret adalah ilustrasi buatan sendiri, bukan foto dari dataset.</p>
 
 <h2>Model dan perangkat lunak</h2>
-<p>Model YOLO11s dari Ultralytics (lisensi AGPL-3.0), dilatih ulang untuk tiga penyakit lalu dijalankan dengan ONNX Runtime di CPU.
-Antarmuka dibuat dengan Streamlit.</p>
+<p>{"Model YOLOv8n-seg (pemisah daun) dan " if pemisah else "Model "}{cfg.nama_model} dari Ultralytics (lisensi AGPL-3.0), dilatih ulang
+untuk {"memisahkan daun dan " if pemisah else ""}tiga penyakit lalu dijalankan dengan ONNX Runtime di CPU. Antarmuka dibuat dengan Streamlit.</p>
 </div>""")
 
 

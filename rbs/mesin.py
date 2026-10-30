@@ -121,5 +121,13 @@ def jalankan(fakta_awal: dict, aturan, maks_putaran: int = 100) -> HasilInferens
     raise RuntimeError(f"forward chaining tidak berhenti dalam {maks_putaran} putaran")
 
 
-def fakta_dari_diagnosis(penyakit, tingkat, keyakinan) -> dict:
-    return {"penyakit": penyakit or "tidak_ada", "tingkat": tingkat, "keyakinan": round(float(keyakinan), 4)}
+def fakta_dari_diagnosis(penyakit, tingkat, keyakinan, kemungkinan_lain=None, bercak_rendah=None) -> dict:
+    """Fakta awal. Fakta tambahan (kemungkinan lain, bercak berkeyakinan rendah) hanya dicatat untuk jejak; tidak ada aturan yang
+    memakainya, jadi diagnosis dan saran tidak berubah."""
+    f = {"penyakit": penyakit or "tidak_ada", "tingkat": tingkat, "keyakinan": round(float(keyakinan), 4)}
+    if kemungkinan_lain is not None:
+        f["kemungkinan_lain"] = kemungkinan_lain.penyakit
+        f["keyakinan_kemungkinan_lain"] = round(float(kemungkinan_lain.keyakinan), 4)
+    if bercak_rendah is not None:
+        f["bercak_keyakinan_rendah"] = "ya"
+    return f

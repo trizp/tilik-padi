@@ -1,7 +1,7 @@
 # Memasang ke Streamlit Community Cloud (BELUM dilakukan)
 
 Streamlit Community Cloud gratis, mengambil kode dari repositori GitHub, dan menyediakan memori sekitar 690 MB–2,7 GB. Aplikasi ini
-diukur memakai RAM puncak 250 MB (`docs/uji/sumber_daya.md`). Ikuti langkah di bawah secara berurutan.
+diukur memakai RAM puncak 273 MB (`docs/uji/sumber_daya.md`, alur v9: pemisah daun YOLOv8n-seg + YOLOv8s). Ikuti langkah di bawah secara berurutan.
 
 ## 0. Periksa sebelum memasang
 
@@ -9,9 +9,9 @@ diukur memakai RAM puncak 250 MB (`docs/uji/sumber_daya.md`). Ikuti langkah di b
       penyusun" beserta tautannya. Foto ds2 hanya dipakai untuk melatih model (tidak ditampilkan di aplikasi). Putuskan bersama
       dospem apakah hal ini cukup untuk publikasi.
 - [ ] `rbs/rules.yaml` R001–R003 sudah sama dengan Tabel 3.1 proposal. BAB 3 skripsi masih memuat Tabel 3.2 versi 2022 (lihat README).
-- [ ] Lisensi: repositori memakai **AGPL-3.0** (`LICENSE`), mengikuti model YOLO11 dari Ultralytics. Repositori publik dengan kode
+- [ ] Lisensi: repositori memakai **AGPL-3.0** (`LICENSE`), mengikuti model YOLOv8 dari Ultralytics. Repositori publik dengan kode
       lengkap memenuhi kewajiban membuka kode.
-- [ ] Lima tangkapan layar di `docs/tangkapan_layar/` hanya memuat foto dari RiceLeafDiseaseBD (CC BY 4.0), dan atribusinya ada di README.
+- [ ] Sembilan tangkapan layar di `docs/tangkapan_layar/` hanya memuat foto dari RiceLeafDiseaseBD (CC BY 4.0), dan atribusinya ada di README.
       Aplikasi sendiri hanya memakai ilustrasi SVG buatan sendiri.
 
 ## 1. Siapkan folder siap-unggah
@@ -52,7 +52,7 @@ Bila repositori dibuat ulang: GitHub → **New**, beri nama `tilik-padi`, pilih 
 
 ## 4. Unggah isi folder
 
-Unggah lewat git (unggah lewat browser tidak bisa: model 36 MB melebihi batas 25 MB per berkas di web GitHub).
+Unggah lewat git (unggah lewat browser tidak bisa: model detektor 42,7 MB melebihi batas 25 MB per berkas di web GitHub; pemisah daun 12,7 MB).
 
 ```powershell
 cd <folder tilik-padi>        # folder hasil langkah 1, di samping folder proyek

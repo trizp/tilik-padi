@@ -11,6 +11,10 @@ class FotoDitolak(ValueError):
     """Foto tidak bisa diproses. Pesannya ditulis untuk pengguna: apa yang salah dan cara memperbaikinya."""
 
 
+class FotoPerluDiulang(FotoDitolak):
+    """Foto terbaca, tetapi pemisah daun tidak menemukan satu helai daun yang jelas (foto cadangan). Tidak didiagnosis."""
+
+
 def baca_foto(data: bytes, ukuran_maks_mb: float = 10.0, sisi_maks: int = 2048) -> Image.Image:
     """bytes -> PIL RGB yang orientasinya sudah dikoreksi sesuai EXIF (ImageOps.exif_transpose).
     Foto yang sisi terpanjangnya > sisi_maks diperkecil (JPEG langsung didekode kecil lewat draft) agar hemat memori; model
