@@ -543,3 +543,61 @@ def test_persen_di_bawah_ambang_dibulatkan_ke_bawah():
     assert ">37%<" in ui.pita_keyakinan(0.3666, "terdeteksi")              # terdeteksi tetap dibulatkan biasa
     assert ui.persen(0.29, turun=True) == "29%" and ui.persen(0.2899, turun=True) == "28%"
 
+
+
+def _app_tentang():
+    """AppTest halaman Tentang (halaman bawaan diganti ke Tentang; isi aplikasi tidak diubah)."""
+    from streamlit.testing.v1 import AppTest
+    import conftest
+    src = (conftest.APP / "streamlit_app.py").read_text(encoding="utf-8")
+    src = src.replace('default=True)', 'default=False)').replace('url_path="tentang")', 'url_path="tentang", default=True)')
+    return AppTest.from_string(src, default_timeout=180)
+
+
+def test_tentang_membaca_ulang_config_dan_aturan_yang_berubah(tmp_path, monkeypatch):
+    """Sumber ds2 (config.yaml: sumber_data) dan sumber aturan (rbs/rules.yaml: sumber_aturan) tampil di Tentang dan langsung berubah
+    bila isi berkasnya berubah, tanpa memulai ulang server: kunci cache sumber_daya() = sha256 isi config.yaml + rules.yaml."""
+    import conftest
+    from rbs import mesin
+    cfg_uji, aturan_uji = tmp_path / "config.yaml", tmp_path / "rules.yaml"
+    cfg_uji.write_bytes((conftest.APP / "config.yaml").read_bytes())
+    aturan_uji.write_bytes(mesin.BERKAS_ATURAN.read_bytes())
+    monkeypatch.setenv("TILIK_CONFIG", str(cfg_uji))          # jalur absolut: APP_DIR / jalur absolut = jalur absolut
+    monkeypatch.setattr(mesin, "BERKAS_ATURAN", aturan_uji)
+
+    at = _app_tentang()
+    at.run()
+    assert not at.exception
+    teks = " ".join(m.body for m in at.markdown)
+    assert "doi:10.17632/hx6f852hw4.2" in teks and "Diakses melalui salinan Kaggle (soni535)" in teks
+    assert "Sumber basis aturan: Kementerian Pertanian RI. 2023. Teknik Mengendalikan Hama dan Penyakit Padi." in teks
+
+    cfg_uji.write_text(cfg_uji.read_text(encoding="utf-8").replace("doi:10.17632/hx6f852hw4.2", "doi:UJI-CACHE-CONFIG"), encoding="utf-8")
+    aturan_uji.write_text(aturan_uji.read_text(encoding="utf-8").replace("Pertanian Press, Jakarta.", "UJI-CACHE-ATURAN."),
+                          encoding="utf-8")
+    at.run()
+    assert not at.exception
+    teks = " ".join(m.body for m in at.markdown)
+    assert "doi:UJI-CACHE-CONFIG" in teks and "doi:10.17632/hx6f852hw4.2" not in teks
+    assert "Teknik Mengendalikan Hama dan Penyakit Padi. UJI-CACHE-ATURAN." in teks
+
+
+def test_sidik_berkas_berubah_mengikuti_isi(tmp_path):
+    from core import konfigurasi
+    a, b = tmp_path / "a.yaml", tmp_path / "b.yaml"
+    a.write_text("x: 1\n", encoding="utf-8")
+    b.write_text("y: 2\n", encoding="utf-8")
+    s1 = konfigurasi.sidik_berkas(a, b)
+    assert s1 == konfigurasi.sidik_berkas(a, b) and len(s1) == 64
+    b.write_text("y: 3\n", encoding="utf-8")                   # ukuran sama, isi beda
+    assert konfigurasi.sidik_berkas(a, b) != s1
+    b.write_text("y: 2\n", encoding="utf-8")                   # isi kembali sama: sidik sama (tidak bergantung waktu ubah)
+    assert konfigurasi.sidik_berkas(a, b) == s1
+
+
+def test_jalur_config_mengikuti_tilik_config(monkeypatch):
+    from core import konfigurasi
+    monkeypatch.delenv("TILIK_CONFIG", raising=False)
+    assert konfigurasi.jalur() == konfigurasi.APP_DIR / "config.yaml"
+    monkeypatch.setenv("TILIK_CONFIG", "config_yolov8.yaml")
+    assert konfigurasi.jalur() == konfigurasi.APP_DIR / "config_yolov8.yaml"

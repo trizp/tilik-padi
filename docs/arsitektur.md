@@ -74,7 +74,8 @@ Diukur di folder proyek skripsi dengan Chrome headless (hasil: `docs/uji/sumber_
 - waktu inti ±0,22 detik per foto di CPU laptop (pemisah daun ±0,1 detik + detektor), ujung ke ujung di browser ±0,33 detik.
 
 Penghemat memori:
-- kedua model dimuat sekali (`st.cache_resource`);
+- kedua model dimuat sekali (`st.cache_resource`, `max_entries=1`). Kunci cache-nya sha256 isi `config.yaml` dan `rbs/rules.yaml`
+  (`konfigurasi.sidik_berkas`), jadi perubahan isi kedua berkas langsung terbaca tanpa memulai ulang server, dan model lama dilepas;
 - arena memori ONNX Runtime dimatikan;
 - foto > 2048 px didekode kecil;
 - foto hasil dikirim sebagai JPEG.

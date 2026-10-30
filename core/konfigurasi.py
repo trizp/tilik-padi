@@ -1,5 +1,6 @@
 """Memuat app/config.yaml (atau berkas yang ditunjuk variabel lingkungan TILIK_CONFIG, untuk mencoba konfigurasi alternatif
 tanpa mengaktifkannya). Jalur relatif di config dihitung dari folder app/."""
+import hashlib
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,10 +34,25 @@ class Konfigurasi:
     hasil_evaluasi: dict = field(default_factory=dict)   # teks hasil evaluasi alur aplikasi untuk halaman Tentang
 
 
-def muat(path=None) -> Konfigurasi:
+def jalur(path=None) -> Path:
+    """Berkas config yang dipakai: argumen, lalu TILIK_CONFIG, lalu app/config.yaml."""
     if path is None and os.environ.get("TILIK_CONFIG"):
         path = APP_DIR / os.environ["TILIK_CONFIG"]
-    path = Path(path) if path else APP_DIR / "config.yaml"
+    return Path(path) if path else APP_DIR / "config.yaml"
+
+
+def sidik_berkas(*paths) -> str:
+    """sha256 gabungan jalur dan isi berkas. Dipakai sebagai argumen fungsi yang di-cache Streamlit, supaya perubahan isi config
+    atau aturan langsung terbaca tanpa memulai ulang server. Memakai isi, bukan waktu ubah (clone git di server menyetel ulang mtime)."""
+    h = hashlib.sha256()
+    for p in paths:
+        p = Path(p)
+        h.update(str(p.resolve()).encode("utf-8") + b"\0" + p.read_bytes() + b"\0")
+    return h.hexdigest()
+
+
+def muat(path=None) -> Konfigurasi:
+    path = jalur(path)
     c = yaml.safe_load(path.read_text(encoding="utf-8"))
     m, a, u = c["model"], c["ambang"], c["unggahan"]
     if not (0 < a["rendah"] <= a["terdeteksi"] < 1):        # rendah = terdeteksi: tingkat "kemungkinan" tidak dipakai

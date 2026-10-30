@@ -53,8 +53,11 @@ class HasilInferensi:
     putaran: int = 0
 
 
+BERKAS_ATURAN = Path(__file__).with_name("rules.yaml")
+
+
 def _baca(path):
-    path = Path(path) if path else Path(__file__).with_name("rules.yaml")
+    path = Path(path) if path else BERKAS_ATURAN
     return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
 
 

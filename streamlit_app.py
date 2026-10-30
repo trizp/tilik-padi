@@ -14,13 +14,20 @@ from ui import komponen as ui
 st.set_page_config(page_title="Tilik Padi", page_icon=None, layout="wide", initial_sidebar_state="collapsed")
 
 
-@st.cache_resource(show_spinner=False)
-def sumber_daya():
+@st.cache_resource(show_spinner=False, max_entries=1)
+def _muat_sumber_daya(sidik: str):
+    """`sidik` (sha256 isi config + rules.yaml) hanya menjadi kunci cache: isi berubah -> dimuat ulang. max_entries=1 melepas model lama."""
     cfg = konfigurasi.muat()
     det = inferensi.Detektor(cfg.model_path, cfg.imgsz, cfg.conf_min, cfg.iou, cfg.max_det)
     pemisah = pemisah_daun.PemisahDaun(cfg.pemisah_path, cfg.pemisah_tau) if cfg.pemisah_path else None
-    ui.atur_batas(cfg.ambang_rendah, cfg.ambang_terdeteksi, cfg.batas_tampil_rendah)
     return cfg, det, pemisah, mesin.muat_aturan(), mesin.muat_meta()
+
+
+def sumber_daya():
+    res = _muat_sumber_daya(konfigurasi.sidik_berkas(konfigurasi.jalur(), mesin.BERKAS_ATURAN))
+    cfg = res[0]
+    ui.atur_batas(cfg.ambang_rendah, cfg.ambang_terdeteksi, cfg.batas_tampil_rendah)   # batas global modul ui selalu milik cfg aktif
+    return res
 
 
 def html(s: str):

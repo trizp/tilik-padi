@@ -151,7 +151,8 @@ Catat hasilnya, misalnya:
 
 - **Mengubah teks atau aturan:** ubah `config.yaml` atau `rbs/rules.yaml` di folder `tilik-padi` (atau jalankan ulang
   `siapkan_unggah.py --timpa` setelah mengubah `app/`). Jalankan test, lalu `git add .`, `git commit -m "..."`, dan `git push`.
-  Cloud memasang ulang otomatis.
+  Cloud memasang ulang otomatis. Perubahan isi `config.yaml` atau `rbs/rules.yaml` langsung terbaca pada pemuatan halaman
+  berikutnya (kunci cache = sha256 isi kedua berkas), tanpa Reboot.
 - **Memulai ulang aplikasi:** di https://share.streamlit.io, menu ⋮ pada aplikasi → **Reboot**. Untuk menghapusnya, pilih **Delete**.
 - **Aplikasi tidur:** aplikasi yang tidak dikunjungi beberapa hari akan "tidur". Kunjungan berikutnya membangunkannya dalam waktu
   sekitar satu menit.
